@@ -23,7 +23,15 @@ from fastapi import FastAPI
 from fastapi_offline import FastAPIOffline
 
 from entrypoints.web_api.error_handlers import register_error_handlers
-from entrypoints.web_api.routers import apps_routes, feedback_routes, health_routes
+from entrypoints.web_api.routers import (
+    analytics_routes,
+    apps_routes,
+    draft_routes,
+    feedback_routes,
+    health_routes,
+    knowledge_routes,
+    spike_routes,
+)
 
 
 def create_app() -> FastAPI:
@@ -38,6 +46,10 @@ def create_app() -> FastAPI:
     app.include_router(health_routes.router)
     app.include_router(apps_routes.router)
     app.include_router(feedback_routes.router)
+    app.include_router(draft_routes.router)
+    app.include_router(spike_routes.router)
+    app.include_router(knowledge_routes.router)
+    app.include_router(analytics_routes.router)
 
     register_error_handlers(app)
     return app

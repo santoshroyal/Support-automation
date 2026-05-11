@@ -51,6 +51,12 @@ class SpikeEventRepositoryPostgres:
             )
             return [_to_domain(row) for row in session.execute(statement).scalars()]
 
+    def get(self, spike_id: UUID) -> SpikeEvent | None:
+        with session_scope() as session:
+            statement = select(SpikeEventOrm).where(SpikeEventOrm.id == spike_id)
+            row = session.execute(statement).scalar_one_or_none()
+            return _to_domain(row) if row is not None else None
+
 
 def _to_domain(row: SpikeEventOrm) -> SpikeEvent:
     return SpikeEvent(

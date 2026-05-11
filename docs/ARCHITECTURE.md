@@ -113,11 +113,11 @@ What that buys us:
 | 1c-2 — Hybrid retrieval (vector + lexical + RRF) | ✅ shipped | adds `content_tsvector` generated column + GIN index on `knowledge_chunk` |
 | 1d — Drafting + delivery | ✅ shipped | `draft_reply` |
 | 1e — Spike detection + digest | ✅ shipped | `spike_event`, `digest_log` |
-| 1f — JSON API (FastAPI) | ✅ partial (health/apps/feedback shipped; drafts/spikes/knowledge/analytics next) | (no new tables) |
+| 1f — JSON API (FastAPI) | ✅ shipped (health, apps, feedback, drafts, spikes, knowledge/sources, analytics/volume, analytics/categories) | (no new tables) |
 | 1g — React UI | ⏳ pending | (no new tables) |
 | 1h — Hardening | ⏳ pending | `audit_log` |
 
-Test count today: **134** (90 unit + 17 file-based integration + 15 Postgres integration + 12 API). Every PR
+Test count today: **157** (90 unit + 17 file-based integration + 15 Postgres integration + 35 API). Every PR
 runs the unit suite; integration tests run when
 `SUPPORT_AUTOMATION_DATABASE_URL` is set.
 

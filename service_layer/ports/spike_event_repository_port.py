@@ -31,3 +31,7 @@ class SpikeEventRepositoryPort(Protocol):
     def list_recent(self, since: datetime) -> Iterable[SpikeEvent]:
         """Spike events created since `since`. Powers the digest's "what fired" section."""
         ...
+
+    def get(self, spike_id: UUID) -> SpikeEvent | None:
+        """Read a single spike event by id — powers the dashboard drill-down."""
+        ...

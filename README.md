@@ -76,7 +76,7 @@ PostgreSQL client.
 .venv/bin/python -m pytest -v
 ```
 
-Expect **134 tests passing** (90 unit + 17 file-based integration + 15 PostgreSQL integration + 12 API tests).
+Expect **157 tests passing** (90 unit + 17 file-based integration + 15 PostgreSQL integration + 35 API tests).
 The unit suite runs in milliseconds against fakes; the integration
 suite needs `SUPPORT_AUTOMATION_DATABASE_URL` set and uses a separate
 `*_test`-suffixed database, so it never touches your main data.
@@ -108,7 +108,7 @@ suite needs `SUPPORT_AUTOMATION_DATABASE_URL` set and uses a separate
 | 1c-2 | Hybrid retrieval (vector + lexical + RRF) | ✅ shipped |
 | 1d | Drafting + delivery (RAG-grounded replies, filesystem writer; Gmail real adapter pending credentials) | ✅ shipped |
 | 1e | Spike detection + stakeholder digest | ✅ shipped |
-| 1f | Read-only JSON API (FastAPI) — health, apps, feedback endpoints | ✅ shipped (drafts, spikes, knowledge health, analytics endpoints in next sub-sprint) |
+| 1f | Read-only JSON API (FastAPI) — health, apps, feedback, drafts, spikes, knowledge/sources, analytics/volume, analytics/categories | ✅ shipped |
 | 1g | React dashboard | ⏳ pending |
 | 1h | Hardening (audit log, runbook, systemd timers) | ⏳ pending |
 

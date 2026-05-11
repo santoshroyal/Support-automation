@@ -26,5 +26,8 @@ class InMemorySpikeEventRepository:
     def list_recent(self, since: datetime) -> Iterable[SpikeEvent]:
         return [event for event in self._events if event.window_end >= since]
 
+    def get(self, spike_id: UUID) -> SpikeEvent | None:
+        return next((event for event in self._events if event.id == spike_id), None)
+
     def __len__(self) -> int:
         return len(self._events)

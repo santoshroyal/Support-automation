@@ -98,7 +98,7 @@ make setup-postgres                       # PostgreSQL 16 + pgvector via Homebre
 .venv/bin/python scripts/bootstrap_schema.py  # Create the tables
 
 # Daily commands
-.venv/bin/python -m pytest                                                 # ~134 tests, < 1 second
+.venv/bin/python -m pytest                                                 # ~157 tests, < 1.5 seconds
 .venv/bin/python -m entrypoints.cli.ingest_feedback_cli --once             # Pull new feedback
 .venv/bin/python -m entrypoints.cli.classify_and_cluster_cli --once        # Classify + cluster
 .venv/bin/python -m entrypoints.cli.sync_knowledge_base_cli --once         # Sync Confluence / JIRA / Sheets
