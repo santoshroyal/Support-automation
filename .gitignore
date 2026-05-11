@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+*.egg
+pip-log.txt
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project secrets — NEVER commit
+secrets/*
+!secrets/.gitkeep
+!secrets/README.md
+
+# Runtime
+var/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Web UI build output
+web_ui/node_modules/
+web_ui/dist/
+
+# Local env
+.env
+.env.local

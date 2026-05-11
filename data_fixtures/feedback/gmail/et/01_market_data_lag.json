@@ -1,0 +1,11 @@
+{
+  "external_id": "msg_et_2026_05_04_001",
+  "thread_id": "thread_et_2026_05_04_001",
+  "from": "trader.priya@example.com",
+  "subject": "ET Markets data lagging by 2-3 minutes",
+  "body": "Hi team,\n\nI use the ET app for live market quotes. Today the Sensex and Nifty values are 2-3 minutes behind what I'm seeing on the broker terminal. This is critical during market hours. iPhone 15, latest app version.\n\nPlease look into this urgently.\n\nThanks,\nPriya",
+  "received_at": "2026-05-04T05:15:00Z",
+  "language_hint": "en",
+  "app_version": "5.7.2",
+  "device": "iPhone 15"
+}

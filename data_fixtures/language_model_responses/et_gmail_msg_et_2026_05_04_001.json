@@ -1,0 +1,22 @@
+{
+  "label": "et / gmail / unknown / msg_et_2026_05_04_001",
+  "prompt_signature": "e51d4cdb1cd89a31059de4e798e90b691dfbb1b831e8169dfeab852e68dd3155",
+  "response": {
+    "category": "bug",
+    "sub_category": "market_data_lag",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "iPhone 15",
+      "app_version": "5.7.2",
+      "feature_name": "live_market_quotes",
+      "indices": [
+        "Sensex",
+        "Nifty"
+      ],
+      "lag_duration": "2-3 minutes",
+      "user_name": "Priya"
+    },
+    "requires_followup": true
+  }
+}

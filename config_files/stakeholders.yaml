@@ -1,0 +1,22 @@
+# Stakeholder list for digest emails.
+#
+# Phase 1 broadcasts to every stakeholder. Smart routing (e.g. Tech team
+# only sees bug spikes; Editorial only sees content_quality spikes) is
+# phase 2 and tracked in the open-questions section of the design doc.
+#
+# Both flags `receives_hourly` and `receives_daily` exist so leadership
+# can opt out of hourly noise but stay on the daily roll-up.
+
+stakeholders:
+  - name: Engineering Lead
+    email: eng-lead@example.com
+    receives_hourly: true
+    receives_daily: true
+  - name: Product Manager
+    email: pm@example.com
+    receives_hourly: false
+    receives_daily: true
+  - name: QA Lead
+    email: qa-lead@example.com
+    receives_hourly: true
+    receives_daily: true

@@ -1,0 +1,23 @@
+{
+  "label": "toi / apple_app_store / ios / apple_review_2026_05_04_003",
+  "prompt_signature": "55c5f8f1d6f0cf26befc83aa000bcb9e3c1eb167af321b3e35e0ecbf4f014e6c",
+  "response": {
+    "category": "feature_request",
+    "sub_category": "regional_language_support",
+    "severity": "low",
+    "sentiment": "positive",
+    "entities": {
+      "feature_name": "regional_language_editions",
+      "location": "London",
+      "existing_languages": [
+        "English",
+        "Hindi"
+      ],
+      "requested_languages": [
+        "Marathi",
+        "Bengali"
+      ]
+    },
+    "requires_followup": true
+  }
+}

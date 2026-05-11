@@ -1,0 +1,15 @@
+{
+  "key": "TOI-4540",
+  "summary": "OTP SMS delivery delays on Vi and JIO carriers",
+  "description": "Login OTP SMS messages are delayed by 30-90 seconds on Vi (formerly Vodafone Idea) and occasionally 1-2 minutes on JIO during peak hours. Users frequently retry, multiplying their OTP requests and worsening the queue.\n\nProposed fix: after 45 seconds with no delivery confirmation, automatically retry via a secondary carrier route. Email-OTP fallback already exists but discovery is poor.",
+  "status": "In Progress",
+  "priority": "High",
+  "fix_versions": ["8.4.1"],
+  "components": ["Login", "OTP"],
+  "assignee": "Karan Singh",
+  "reporter": "Support Triage Bot",
+  "created": "2026-04-22T14:30:00Z",
+  "updated": "2026-05-03T09:00:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/TOI-4540",
+  "labels": ["customer-impact", "login", "otp", "sms"]
+}

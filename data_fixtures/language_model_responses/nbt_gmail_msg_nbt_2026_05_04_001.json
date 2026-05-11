@@ -1,0 +1,18 @@
+{
+  "label": "nbt / gmail / unknown / msg_nbt_2026_05_04_001",
+  "prompt_signature": "3ff393d57b790ed71268caf1eb63bdbe87cc533c1d7581fc66fada223cba5ae1",
+  "response": {
+    "category": "usability",
+    "sub_category": "font_size_too_small",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "Samsung Galaxy A54",
+      "app_version": "4.2.0",
+      "app": "Navbharat Times",
+      "feature_name": "font_size_setting",
+      "user_age": "62"
+    },
+    "requires_followup": true
+  }
+}

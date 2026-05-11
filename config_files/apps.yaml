@@ -1,0 +1,32 @@
+# Apps that the support automation system covers.
+#
+# Each entry tells the system how to find this app's feedback in each external
+# system. To add another news app (e.g. Maharashtra Times, Vijay Karnataka),
+# add another block here. No code changes required.
+#
+# Fields:
+#   slug              short identifier; used in URLs, fixture folder names, DB rows
+#   name              human-readable display name
+#   play_package_name Google Play package; needed when feedback.play.mode=real
+#   apple_bundle_id   App Store Connect bundle ID; needed when feedback.apple.mode=real
+#   gmail_label       Gmail filter label that routes this app's user emails;
+#                       needed when feedback.gmail.mode=real
+
+apps:
+  - slug: toi
+    name: Times of India
+    play_package_name: com.toi.reader.activities
+    apple_bundle_id: com.timesinternet.toi
+    gmail_label: support-toi
+
+  - slug: et
+    name: Economic Times
+    play_package_name: com.et.reader.activities
+    apple_bundle_id: com.timesinternet.economictimes
+    gmail_label: support-et
+
+  - slug: nbt
+    name: Navbharat Times
+    play_package_name: com.nbt.reader.activities
+    apple_bundle_id: com.timesinternet.navbharattimes
+    gmail_label: support-nbt

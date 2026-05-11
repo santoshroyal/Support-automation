@@ -1,0 +1,16 @@
+{
+  "label": "toi / gmail / unknown / msg_2026_04_30_003",
+  "prompt_signature": "168b567bfe222464818b9146b1dcf1ccc402a4f04c8f89744621f4b3f408c182",
+  "response": {
+    "category": "login_account",
+    "sub_category": "otp_not_received",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "OnePlus 11",
+      "app_version": "8.3.1",
+      "feature_name": "login_otp"
+    },
+    "requires_followup": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "label": "toi / google_play / android / play_review_2026_05_04_001",
+  "prompt_signature": "73da22c5024a0d457a797e7a9c43b623fb7f20dfc2d6403ae11f9a5d074cc325",
+  "response": {
+    "category": "bug",
+    "sub_category": "video_player_crash",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "Pixel 7",
+      "os_version": "Android 14",
+      "app_version": "8.3.1",
+      "feature_name": "video_player"
+    },
+    "requires_followup": true
+  }
+}

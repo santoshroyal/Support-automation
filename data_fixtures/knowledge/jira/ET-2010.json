@@ -1,0 +1,15 @@
+{
+  "key": "ET-2010",
+  "summary": "Live market data caching not flushing on quote update",
+  "description": "Sensex / Nifty / individual stock quotes in the ET Markets section lag by 2-5 minutes during the morning session (09:15 - 11:00 IST). Caching layer in app v5.7.x does not always invalidate when an upstream quote update arrives.\n\nFix: switch to push-based cache invalidation via the existing socket channel; remove the 60s TTL in favour of explicit ttl-on-receive.",
+  "status": "In Progress",
+  "priority": "High",
+  "fix_versions": ["5.7.3"],
+  "components": ["ET Markets", "Caching"],
+  "assignee": "Aditya Pillai",
+  "reporter": "Support Triage Bot",
+  "created": "2026-04-28T09:30:00Z",
+  "updated": "2026-05-04T07:00:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/ET-2010",
+  "labels": ["customer-impact", "et-markets", "live-data", "regression"]
+}

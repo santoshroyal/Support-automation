@@ -1,0 +1,15 @@
+{
+  "key": "NBT-1102",
+  "summary": "Font size preference reset after upgrade from v4.1.x to v4.2.0",
+  "description": "After upgrading the NBT app from v4.1.x to v4.2.0 (released 28 April 2026), the saved font-size preference (छोटा / मध्यम / बड़ा / बहुत बड़ा) resets to the default (मध्यम). Users who had set बड़ा or बहुत बड़ा perceive the entire app as suddenly downsizing all text.\n\nFix: migrate v4.1 SharedPreferences key to the new v4.2 datastore key during first launch after upgrade. Queued for v4.3.",
+  "status": "In Progress",
+  "priority": "High",
+  "fix_versions": ["4.3"],
+  "components": ["Settings", "Accessibility", "Migration"],
+  "assignee": "Pooja Mehta",
+  "reporter": "Support Triage Bot",
+  "created": "2026-04-29T16:00:00Z",
+  "updated": "2026-05-04T08:30:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/NBT-1102",
+  "labels": ["customer-impact", "accessibility", "regression"]
+}

@@ -1,0 +1,17 @@
+{
+  "key": "TOI-4530",
+  "summary": "TOI Plus paywall not refreshed after successful payment",
+  "description": "Users report that after a successful TOI Plus annual purchase (₹1499), the paywall continues to show even after closing and re-opening the app. Bank confirms payment, order receipt is emailed, but entitlement state is not refreshed in the app.\n\nFix: refresh entitlement immediately on payment-receipt webhook instead of waiting for next foreground event. Shipped in v8.3.2.",
+  "status": "Done",
+  "resolution": "Fixed",
+  "priority": "Critical",
+  "fix_versions": ["8.3.2"],
+  "components": ["Subscriptions", "Paywall"],
+  "assignee": "Sneha Gupta",
+  "reporter": "Support Triage Bot",
+  "created": "2026-04-19T08:00:00Z",
+  "updated": "2026-04-24T17:00:00Z",
+  "resolved": "2026-04-24T17:00:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/TOI-4530",
+  "labels": ["customer-impact", "billing", "subscription"]
+}

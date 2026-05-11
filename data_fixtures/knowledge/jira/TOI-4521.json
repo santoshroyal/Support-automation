@@ -1,0 +1,15 @@
+{
+  "key": "TOI-4521",
+  "summary": "iPhone 14/15 video player crashes on iOS 17.4+ in TOI app v8.3.1",
+  "description": "Reproducible: open any article with embedded video on iPhone 14 running iOS 17.4.1, TOI app v8.3.1. Video player loads briefly then app force-closes within ~5 seconds.\n\nRoot cause: AVPlayerLayer disposal during interrupted prefetch. Fix is in v8.4 release branch (PR #2241 merged 30 April).",
+  "status": "In Progress",
+  "priority": "High",
+  "fix_versions": ["8.4"],
+  "components": ["iOS", "Video Player"],
+  "assignee": "Rohit Khanna",
+  "reporter": "Support Triage Bot",
+  "created": "2026-04-21T10:15:00Z",
+  "updated": "2026-05-04T11:30:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/TOI-4521",
+  "labels": ["customer-impact", "video", "ios", "regression"]
+}

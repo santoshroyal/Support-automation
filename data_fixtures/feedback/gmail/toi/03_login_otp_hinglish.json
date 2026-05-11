@@ -1,0 +1,11 @@
+{
+  "external_id": "msg_2026_04_30_003",
+  "thread_id": "thread_2026_04_30_003",
+  "from": "vikram.iyer@example.com",
+  "subject": "OTP nahi aa raha hai login ke time",
+  "body": "Hi,\n\nMain TOI app me login karne ki koshish kar raha hoon last 2 din se. Mobile number daalne ke baad OTP send hoke aata hi nahi hai. Maine multiple times try kiya, network bhi sahi hai.\n\nApp version 8.3.1, OnePlus 11 phone hai. Please help, I read TOI daily.\n\nVikram",
+  "received_at": "2026-04-30T10:05:00Z",
+  "language_hint": "en",
+  "app_version": "8.3.1",
+  "device": "OnePlus 11"
+}

@@ -1,0 +1,22 @@
+# Operator-tunable thresholds for the spike detector and the digest builder.
+#
+# Edit these in the repo (engineer-managed) — there is no UI for editing
+# these in phase 1 by design. Re-run the cron job after changing.
+
+spike_detection:
+  # A cluster spikes when its last `recent_window_hours` count is BOTH
+  # >= min_count AND >= ratio * max(daily_baseline, 1).
+  min_count: 2
+  ratio: 2.0
+  recent_window_hours: 24
+  baseline_window_days: 7
+  # Don't re-alert on the same cluster within this many hours.
+  suppression_window_hours: 6
+  # Number of feedback ids to attach to each alert ("here's what people are saying").
+  sample_size: 5
+
+digest:
+  # Hourly digest covers spikes since (now - hourly_lookback_hours).
+  hourly_lookback_hours: 1
+  # Daily digest covers spikes since (now - daily_lookback_hours).
+  daily_lookback_hours: 24

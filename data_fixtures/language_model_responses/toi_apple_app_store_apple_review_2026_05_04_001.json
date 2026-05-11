@@ -1,0 +1,17 @@
+{
+  "label": "toi / apple_app_store / ios / apple_review_2026_05_04_001",
+  "prompt_signature": "55f17008c56574ebedc1852604c267a46a21edcb2ec8f3c63e12c37fbdc9553f",
+  "response": {
+    "category": "bug",
+    "sub_category": "audio_briefing_playback_failure",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "iPhone 14 Pro",
+      "os_version": "iOS 17.4",
+      "app_version": "8.3.1",
+      "feature_name": "audio_briefings"
+    },
+    "requires_followup": true
+  }
+}

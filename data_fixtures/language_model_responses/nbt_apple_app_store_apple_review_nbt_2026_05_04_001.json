@@ -1,0 +1,17 @@
+{
+  "label": "nbt / apple_app_store / ios / apple_review_nbt_2026_05_04_001",
+  "prompt_signature": "a9e261e5a2f1d9322632b72e79c33155ae0b6d3c7df15a92d290d0d2242e2d59",
+  "response": {
+    "category": "praise",
+    "sub_category": "font_size_too_small",
+    "severity": "low",
+    "sentiment": "positive",
+    "entities": {
+      "app_name": "Navbharat Times",
+      "platform": "iOS",
+      "app_version": "4.2.0",
+      "feature_name": "offline_reading"
+    },
+    "requires_followup": false
+  }
+}

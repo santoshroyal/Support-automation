@@ -1,0 +1,31 @@
+# Language-model routing configuration.
+#
+# The system tries each entry in `chain` from top to bottom on every
+# language-model request, picking the first healthy one. The Recorded
+# adapter is always implicitly appended as a final fallback so the
+# pipeline never fails open even when no real model is installed.
+#
+# Available kinds:
+#   claude_code    — `claude -p ...` subprocess, uses your terminal subscription.
+#   codex_cli      — `codex exec ...` subprocess, uses your terminal subscription.
+#   ollama_gemma   — HTTP to a local Ollama server (default localhost:11434).
+#   recorded       — looks up canned responses by prompt hash. Always healthy.
+#
+# To opt out of every real model and force placeholder behaviour, set the
+# chain to ["recorded"] or simply remove this file.
+
+chain:
+  - kind: claude_code
+    # executable: claude
+    # timeout_seconds: 60
+  - kind: codex_cli
+    # executable: codex
+    # timeout_seconds: 60
+  - kind: ollama_gemma
+    # model: gemma3:latest
+    # base_url: http://localhost:11434
+    # timeout_seconds: 60
+  - kind: recorded
+    # The recorded adapter is appended automatically if you leave it out
+    # of the chain. Listing it explicitly is fine; it lets you put it
+    # earlier in the chain (e.g. for reproducible CI).

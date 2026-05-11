@@ -1,0 +1,17 @@
+{
+  "label": "toi / apple_app_store / ios / apple_review_2026_05_04_002",
+  "prompt_signature": "ca72dde0c1e9b265c1bef0d17de11225f52ba9216074440ccd6c56dadf311ba5",
+  "response": {
+    "category": "login_account",
+    "sub_category": "otp_not_received",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "iPhone 13",
+      "os_version": "17.4.1",
+      "app_version": "8.3.1",
+      "feature_name": "otp_login"
+    },
+    "requires_followup": true
+  }
+}

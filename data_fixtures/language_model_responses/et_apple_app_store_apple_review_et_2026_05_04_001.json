@@ -1,0 +1,17 @@
+{
+  "label": "et / apple_app_store / ios / apple_review_et_2026_05_04_001",
+  "prompt_signature": "fc5aeaa022ff5c295bfeb9bb6441a3e44bcf213eb4f237a61fee0ce63346c6d3",
+  "response": {
+    "category": "feature_request",
+    "sub_category": "ios_home_screen_widget_watchlist",
+    "severity": "low",
+    "sentiment": "neutral",
+    "entities": {
+      "app_name": "Economic Times",
+      "app_version": "5.7.2",
+      "platform": "ios",
+      "feature_name": "home_screen_widget_watchlist"
+    },
+    "requires_followup": false
+  }
+}

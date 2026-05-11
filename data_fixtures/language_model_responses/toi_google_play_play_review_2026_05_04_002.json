@@ -1,0 +1,16 @@
+{
+  "label": "toi / google_play / android / play_review_2026_05_04_002",
+  "prompt_signature": "44f66701b5c575cfb7c1fa7d516141ec79e9c4e11abd22f163efb7d7d83bd639",
+  "response": {
+    "category": "subscription_billing",
+    "sub_category": "paywall_after_payment",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "Samsung Galaxy S23",
+      "app_version": "8.3.1",
+      "feature_name": "TOI Plus"
+    },
+    "requires_followup": true
+  }
+}

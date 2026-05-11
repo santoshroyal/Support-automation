@@ -1,0 +1,11 @@
+{
+  "external_id": "msg_2026_04_30_001",
+  "thread_id": "thread_2026_04_30_001",
+  "from": "rakesh.menon@example.com",
+  "subject": "Video player keeps crashing on iPhone 14",
+  "body": "Hi team,\n\nEver since the latest update, the video player crashes within seconds of starting any article video. I'm on iPhone 14, iOS 17.4.1, app version 8.3.1. I've already tried reinstalling.\n\nPlease fix soon — I read TOI every morning and this is really annoying.\n\nThanks,\nRakesh",
+  "received_at": "2026-04-30T08:14:00Z",
+  "language_hint": "en",
+  "app_version": "8.3.1",
+  "device": "iPhone 14"
+}

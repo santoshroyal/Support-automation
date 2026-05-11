@@ -1,0 +1,15 @@
+{
+  "key": "TOI-4560",
+  "summary": "Marathi & Bengali regional language editions — pilot",
+  "description": "Roll out Marathi edition to a 10% audience starting August 2026, followed by Bengali ~6 weeks later. Includes localised section names, push notifications in target language, and an in-app language picker on first launch.\n\nNRI users (London, Dubai, Singapore) make up ~18% of regional-language requests; the editions ship globally via the app stores.",
+  "status": "Backlog",
+  "priority": "Medium",
+  "fix_versions": ["9.0"],
+  "components": ["Localisation"],
+  "assignee": "Product Team",
+  "reporter": "Editorial",
+  "created": "2026-03-12T09:00:00Z",
+  "updated": "2026-04-25T12:00:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/TOI-4560",
+  "labels": ["roadmap", "languages", "regional"]
+}

@@ -1,0 +1,17 @@
+{
+  "label": "toi / gmail / unknown / msg_2026_04_30_001",
+  "prompt_signature": "cab5f35f982b8b1fd217273e52ccf33d6a074f0ed75d6e611826d916756575f5",
+  "response": {
+    "category": "bug",
+    "sub_category": "video_player_crash",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "iPhone 14",
+      "os_version": "iOS 17.4.1",
+      "app_version": "8.3.1",
+      "feature_name": "video_player"
+    },
+    "requires_followup": true
+  }
+}

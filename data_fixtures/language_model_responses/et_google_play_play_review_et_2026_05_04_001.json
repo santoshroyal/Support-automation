@@ -1,0 +1,18 @@
+{
+  "label": "et / google_play / android / play_review_et_2026_05_04_001",
+  "prompt_signature": "bbc662b5ecc9fe5449f5dcec6e0279985b68b74ebdba0ed944208793d6604fdd",
+  "response": {
+    "category": "bug",
+    "sub_category": "live_market_data_lag",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "Samsung Galaxy S23",
+      "platform": "android",
+      "app_name": "Economic Times",
+      "app_version": "5.7.2",
+      "feature_name": "live_market_data"
+    },
+    "requires_followup": true
+  }
+}

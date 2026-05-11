@@ -1,0 +1,18 @@
+{
+  "label": "nbt / google_play / android / play_review_nbt_2026_05_04_001",
+  "prompt_signature": "04e6adf6bc6267ab6b4a176b294dd0c0812a8eafe228d9e62f1d97df843c3246",
+  "response": {
+    "category": "usability",
+    "sub_category": "font_size_too_small_after_update",
+    "severity": "medium",
+    "sentiment": "negative",
+    "entities": {
+      "device": "Samsung Galaxy A54",
+      "app_version": "4.2.0",
+      "feature_name": "font_size",
+      "app": "navbharat_times",
+      "platform": "android"
+    },
+    "requires_followup": true
+  }
+}

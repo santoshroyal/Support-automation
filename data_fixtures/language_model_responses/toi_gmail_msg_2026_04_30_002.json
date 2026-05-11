@@ -1,0 +1,20 @@
+{
+  "label": "toi / gmail / unknown / msg_2026_04_30_002",
+  "prompt_signature": "b3a22a06ca935a152fdd17ca6ede31d8da799db051ea3e214baa0c154d49b928",
+  "response": {
+    "category": "subscription_billing",
+    "sub_category": "paywall_after_payment",
+    "severity": "high",
+    "sentiment": "negative",
+    "entities": {
+      "device": "Samsung Galaxy S23",
+      "app_version": "8.3.1",
+      "feature_name": "TOI Plus",
+      "subscription_plan": "annual",
+      "amount": "₹1499",
+      "payment_method": "credit_card",
+      "user_name": "Anita"
+    },
+    "requires_followup": true
+  }
+}

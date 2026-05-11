@@ -1,0 +1,15 @@
+{
+  "key": "TOI-4550",
+  "summary": "Audio briefing playback hangs indefinitely on iOS 17.4+",
+  "description": "On iPhones running iOS 17.4 or 17.4.1, tapping play on an audio briefing shows the loading spinner indefinitely without audio starting. AVAudioSession activation race surfaces under iOS 17.4's stricter background-audio policy.\n\nFix: explicit AVAudioSession.setCategory + setActive sequence before AVPlayer rate change. Merged into v8.4 branch.",
+  "status": "In Progress",
+  "priority": "High",
+  "fix_versions": ["8.4"],
+  "components": ["iOS", "Audio Briefings"],
+  "assignee": "Rohit Khanna",
+  "reporter": "Support Triage Bot",
+  "created": "2026-04-23T11:00:00Z",
+  "updated": "2026-05-04T15:00:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/TOI-4550",
+  "labels": ["customer-impact", "audio", "ios"]
+}

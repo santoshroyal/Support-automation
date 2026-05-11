@@ -1,0 +1,15 @@
+{
+  "key": "ET-2015",
+  "summary": "iOS home-screen widget — watchlist quotes",
+  "description": "Most-upvoted iOS feature request in Q1 2026 — surface the user's watchlist (configured in the ET app) as a home-screen widget showing live LTP and percentage change. Refresh cadence 60 seconds.\n\nScheduled for the v6.0 release in Q3 2026 alongside the broader iOS refresh.",
+  "status": "Backlog",
+  "priority": "Medium",
+  "fix_versions": ["6.0"],
+  "components": ["iOS", "Widgets"],
+  "assignee": "Product Team",
+  "reporter": "User Research",
+  "created": "2026-02-10T10:00:00Z",
+  "updated": "2026-04-30T14:00:00Z",
+  "url": "https://timesinternet.atlassian.net/browse/ET-2015",
+  "labels": ["roadmap", "feature-request", "ios", "widgets"]
+}

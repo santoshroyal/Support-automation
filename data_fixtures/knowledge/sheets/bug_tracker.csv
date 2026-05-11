@@ -1,0 +1,10 @@
+App,Bug ID,Description,Status,ETA,Owner,Customer Impact
+TOI,TOI-4521,Video player crash on iOS 17.4+ in v8.3.1,In Progress,v8.4 (week of 6 May 2026),Rohit Khanna,High
+TOI,TOI-4530,TOI Plus paywall not refreshed after payment,Done,Fixed in v8.3.2,Sneha Gupta,Critical (resolved)
+TOI,TOI-4540,OTP SMS delivery delays on Vi/JIO carriers,In Progress,v8.4.1 (end of May 2026),Karan Singh,High
+TOI,TOI-4548,Sign-in stuck after OTP entry,Done,Fixed in v8.3.2,Sneha Gupta,Medium (resolved)
+TOI,TOI-4550,Audio briefing playback hang on iOS 17.4+,In Progress,v8.4 (week of 6 May 2026),Rohit Khanna,High
+TOI,TOI-4560,Marathi & Bengali pilot,Backlog,Q3 2026,Product Team,Roadmap
+ET,ET-2010,Live market data caching not flushing,In Progress,v5.7.3 (week of 12 May 2026),Aditya Pillai,High
+ET,ET-2015,iOS home-screen widget — watchlist,Backlog,v6.0 Q3 2026,Product Team,Roadmap
+NBT,NBT-1102,Font size preference reset after v4.2 upgrade,In Progress,v4.3 (12 May 2026),Pooja Mehta,High
