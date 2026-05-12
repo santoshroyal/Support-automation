@@ -23,9 +23,11 @@ from fastapi import FastAPI
 from fastapi_offline import FastAPIOffline
 
 from entrypoints.web_api.error_handlers import register_error_handlers
+from entrypoints.web_api.logging_setup import setup_logging
 from entrypoints.web_api.routers import (
     analytics_routes,
     apps_routes,
+    audit_routes,
     draft_routes,
     feedback_routes,
     health_routes,
@@ -36,6 +38,7 @@ from entrypoints.web_api.static_mount import mount_web_ui
 
 
 def create_app() -> FastAPI:
+    setup_logging()
     app = FastAPIOffline(
         title="Times of India — Support Automation API",
         version="1.0.0",
@@ -51,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(spike_routes.router)
     app.include_router(knowledge_routes.router)
     app.include_router(analytics_routes.router)
+    app.include_router(audit_routes.router)
 
     register_error_handlers(app)
     mount_web_ui(app)  # the entire UI seam — remove this line to drop the SPA

@@ -13,6 +13,7 @@ import sys
 from contextlib import contextmanager, nullcontext
 from typing import Iterator
 
+from entrypoints.cli.audit_helper import cron_audit
 from entrypoints.composition_root import build_app
 
 _JOB_NAME = "detect-spikes"
@@ -30,7 +31,11 @@ def main(argv: list[str] | None = None) -> int:
         if acquired is False:
             print(f"[{_JOB_NAME}] previous run still in flight; skipping.", file=sys.stderr)
             return 0
-        result = use_case.run()
+        with cron_audit(app.audit_log_repository, _JOB_NAME) as audit:
+            result = use_case.run()
+            audit["clusters_examined"] = result.clusters_examined
+            audit["spikes_recorded"] = result.spikes_recorded
+            audit["suppressed_recent"] = result.suppressed_recent
 
     print(
         f"[detect_spikes] examined={result.clusters_examined} "

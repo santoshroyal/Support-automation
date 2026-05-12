@@ -1,0 +1,10 @@
+[Unit]
+Description=Support Automation — Draft replies every 15 minutes
+
+[Timer]
+OnCalendar=*:10/15
+Persistent=true
+Unit=support-automation-draft.service
+
+[Install]
+WantedBy=timers.target

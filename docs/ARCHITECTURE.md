@@ -115,9 +115,9 @@ What that buys us:
 | 1e — Spike detection + digest | ✅ shipped | `spike_event`, `digest_log` |
 | 1f — JSON API (FastAPI) | ✅ shipped (health, apps, feedback, drafts, spikes, knowledge/sources, analytics/volume, analytics/categories) | (no new tables) |
 | 1g — React UI | ✅ shipped (Vite + React + TS + Tailwind + shadcn + TanStack Query + Recharts; 5 pages; isolation enforced by `make ci-headless`) | (no new tables) |
-| 1h — Hardening | ⏳ pending | `audit_log` |
+| 1h — Hardening | ✅ shipped (audit log, Alembic, systemd units, JSON logging + sanitised 500s, operator runbook, pre-flight checklist) | `audit_log` ✅; `alembic_version` ✅ |
 
-Test count today: **157** (90 unit + 17 file-based integration + 15 Postgres integration + 35 API). Every PR
+Test count today: **170** (95 unit + 17 file-based integration + 15 Postgres integration + 43 API). Every PR
 runs the unit suite; integration tests run when
 `SUPPORT_AUTOMATION_DATABASE_URL` is set.
 
@@ -136,8 +136,8 @@ Eleven tables. All UUIDs are primary keys; all timestamps are timezone-aware.
 | `knowledge_chunk` | ~500-character slice with embedding | `vector(768)` + HNSW; `content_tsvector` (generated column) + GIN for lexical search |
 | `spike_event` | Recorded spike; cluster × window | Suppression via `ix_spike_event_cluster_window_end` |
 | `digest_log` | Audit of every digest run | `(type, sent_at)` index; `error` column captures partial failures |
-| (planned) `draft_reply` | Generated drafts with citations | Phase 1d |
-| (planned) `audit_log` | Cron-side action history | Phase 1h |
+| `draft_reply` | Generated drafts with citations | Phase 1d ✅ |
+| `audit_log` | Append-only record of cron-side actions; key `(actor, occurred_at)` for the dashboard | Phase 1h ✅ |
 
 Full DDL lives in `adapters/persistence/orm_models.py`. Re-run
 `scripts/bootstrap_schema.py` to materialise it.

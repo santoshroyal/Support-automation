@@ -4,9 +4,18 @@ Routes never construct HTTPException themselves. Instead they let
 domain exceptions bubble; this module turns each kind into the right
 HTTP response. Keeping the mapping in one place means a route can be
 written once and behave consistently no matter which port it called.
+
+The generic `Exception` handler at the bottom is the safety net for
+**unknown** errors: it returns a small JSON body with a `trace_id` and
+logs the full exception (including the trace_id) so support staff can
+correlate a 500 a user saw with the underlying stack trace, without
+leaking the trace itself in the HTTP response.
 """
 
 from __future__ import annotations
+
+import logging
+import uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -19,6 +28,8 @@ from domain.exceptions import (
     SourceUnavailable,
     UnknownLanguageModelError,
 )
+
+_logger = logging.getLogger(__name__)
 
 
 def register_error_handlers(app: FastAPI) -> None:
@@ -64,4 +75,25 @@ def register_error_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=400,
             content={"error": "domain_error", "detail": str(exc)},
+        )
+
+    @app.exception_handler(Exception)
+    async def _unhandled(request: Request, exc: Exception):
+        """Final safety net for anything we didn't anticipate.
+
+        Returns a small response with a `trace_id` and writes the full
+        exception (with the same trace_id) to the JSON log. Support
+        staff use the trace_id to find the matching log entry without
+        the user ever seeing the Python stack trace.
+        """
+        trace_id = uuid.uuid4().hex
+        _logger.exception(
+            "unhandled exception serving %s %s",
+            request.method,
+            request.url.path,
+            extra={"trace_id": trace_id, "path": request.url.path},
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"error": "internal", "trace_id": trace_id},
         )

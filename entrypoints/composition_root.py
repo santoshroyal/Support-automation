@@ -67,6 +67,12 @@ from adapters.persistence.digest_log_repository_postgres import (
 from adapters.persistence.in_memory_digest_log_repository import (
     InMemoryDigestLogRepository,
 )
+from adapters.persistence.audit_log_repository_postgres import (
+    AuditLogRepositoryPostgres,
+)
+from adapters.persistence.in_memory_audit_log_repository import (
+    InMemoryAuditLogRepository,
+)
 from adapters.persistence.in_memory_spike_event_repository import (
     InMemorySpikeEventRepository,
 )
@@ -107,6 +113,7 @@ from service_layer.ports.digest_log_repository_port import DigestLogRepositoryPo
 from service_layer.ports.draft_reply_repository_port import DraftReplyRepositoryPort
 from service_layer.ports.notification_sender_port import NotificationSenderPort
 from service_layer.ports.reply_delivery_port import ReplyDeliveryPort
+from service_layer.ports.audit_log_repository_port import AuditLogRepositoryPort
 from service_layer.ports.spike_event_repository_port import SpikeEventRepositoryPort
 from service_layer.use_cases.classify_feedback import ClassifyFeedback
 from service_layer.use_cases.cluster_feedback import ClusterFeedback
@@ -143,6 +150,7 @@ class WiredApp:
     digest_log_repository: DigestLogRepositoryPort
     knowledge_repository: KnowledgeRepositoryPort
     draft_reply_repository: DraftReplyRepositoryPort
+    audit_log_repository: AuditLogRepositoryPort
     feedback_sources: Sequence[FeedbackSourcePort]
     knowledge_sources: Sequence[KnowledgeSourcePort]
     language_model: LanguageModelPort
@@ -278,6 +286,7 @@ def build_app() -> WiredApp:
         digest_log_repository,
         knowledge_repository,
         draft_reply_repository,
+        audit_log_repository,
         backend_name,
     ) = _build_repositories(config)
     feedback_sources = _build_feedback_sources(config, app_registry)
@@ -300,6 +309,7 @@ def build_app() -> WiredApp:
         digest_log_repository=digest_log_repository,
         knowledge_repository=knowledge_repository,
         draft_reply_repository=draft_reply_repository,
+        audit_log_repository=audit_log_repository,
         feedback_sources=feedback_sources,
         knowledge_sources=knowledge_sources,
         language_model=language_model,
@@ -366,6 +376,7 @@ def _build_repositories(
     DigestLogRepositoryPort,
     KnowledgeRepositoryPort,
     DraftReplyRepositoryPort,
+    AuditLogRepositoryPort,
     str,
 ]:
     if config.use_postgres():
@@ -377,6 +388,7 @@ def _build_repositories(
             DigestLogRepositoryPostgres(),
             KnowledgeRepositoryPostgres(),
             DraftReplyRepositoryPostgres(),
+            AuditLogRepositoryPostgres(),
             "postgres",
         )
     return (
@@ -387,6 +399,7 @@ def _build_repositories(
         InMemoryDigestLogRepository(),
         InMemoryKnowledgeRepository(),
         InMemoryDraftReplyRepository(),
+        InMemoryAuditLogRepository(),
         "in_memory",
     )
 

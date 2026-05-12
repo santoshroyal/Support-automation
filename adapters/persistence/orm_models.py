@@ -369,3 +369,37 @@ class DigestLogOrm(Base):
     __table_args__ = (
         Index("ix_digest_log_type_sent_at", "type", "sent_at"),
     )
+
+
+class AuditLogOrm(Base):
+    """One row per recorded system action.
+
+    Append-only audit trail. Cron entry-points write `started` /
+    `finished` rows; significant events (drafts delivered, spikes
+    detected, digests sent) write entity-scoped rows. The Postgres
+    adapter never updates or deletes rows here.
+
+    `details` is intentionally `JSONB` and free-form — different call
+    sites care about different metadata (counts, fix versions,
+    recipient lists) and we don't want each to drive a schema change.
+    The dashboard renders it as key/value pairs.
+    """
+
+    __tablename__ = "audit_log"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    actor: Mapped[str] = mapped_column(String(64), nullable=False)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)
+    entity_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    entity_id: Mapped[UUID | None] = mapped_column(nullable=True)
+    details_jsonb: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    occurred_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False
+    )
+
+    __table_args__ = (
+        # Newest-first queries are the common read pattern.
+        Index("ix_audit_log_occurred_at_desc", "occurred_at"),
+        # "What did the X cron do?" is the common filter.
+        Index("ix_audit_log_actor_occurred_at", "actor", "occurred_at"),
+    )

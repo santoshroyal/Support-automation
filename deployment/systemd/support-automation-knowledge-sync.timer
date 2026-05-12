@@ -1,0 +1,10 @@
+[Unit]
+Description=Support Automation — Knowledge base sync every 90 minutes
+
+[Timer]
+OnCalendar=*:10/90
+Persistent=true
+Unit=support-automation-knowledge-sync.service
+
+[Install]
+WantedBy=timers.target

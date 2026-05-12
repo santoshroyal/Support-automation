@@ -1,0 +1,26 @@
+# One-shot cron: classify every unclassified feedback, then cluster every unclustered one.
+# Scheduled by support-automation-classify.timer (every 15 min).
+
+[Unit]
+Description=Support Automation — Classify + cluster (one pass)
+After=postgresql.service network-online.target support-automation-ingest.service
+Wants=postgresql.service network-online.target
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/python -m entrypoints.cli.classify_and_cluster_cli --once
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-classify
+# 15 LLM calls + clustering: 90 s is generous but bounded. A run past
+# 10 min indicates an LLM hang and should fail loudly.
+TimeoutStartSec=900
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service

@@ -19,6 +19,7 @@ import sys
 from contextlib import contextmanager, nullcontext
 from typing import Iterator
 
+from entrypoints.cli.audit_helper import cron_audit
 from entrypoints.composition_root import build_app
 
 _JOB_NAME = "classify-and-cluster"
@@ -46,26 +47,31 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[{_JOB_NAME}] previous run still in flight; skipping.", file=sys.stderr)
             return 0
 
-        if not args.skip_classify:
-            classify_result = app.classify_feedback().run(
-                app_slug=args.app_slug, limit=args.limit
-            )
-            print(
-                f"[classify] classified={classify_result.classified} "
-                f"already_classified={classify_result.skipped_already_classified} "
-                f"failed={classify_result.failed} "
-                f"(model={app.language_model.name}, backend={app.backend_name})"
-            )
+        with cron_audit(app.audit_log_repository, _JOB_NAME) as audit:
+            if not args.skip_classify:
+                classify_result = app.classify_feedback().run(
+                    app_slug=args.app_slug, limit=args.limit
+                )
+                audit["classified"] = classify_result.classified
+                audit["classify_failed"] = classify_result.failed
+                print(
+                    f"[classify] classified={classify_result.classified} "
+                    f"already_classified={classify_result.skipped_already_classified} "
+                    f"failed={classify_result.failed} "
+                    f"(model={app.language_model.name}, backend={app.backend_name})"
+                )
 
-        if not args.skip_cluster:
-            cluster_result = app.cluster_feedback().run(
-                app_slug=args.app_slug, limit=args.limit
-            )
-            print(
-                f"[cluster ] clustered={cluster_result.clustered} "
-                f"new_clusters={cluster_result.new_clusters} "
-                f"already_clustered={cluster_result.skipped_already_clustered}"
-            )
+            if not args.skip_cluster:
+                cluster_result = app.cluster_feedback().run(
+                    app_slug=args.app_slug, limit=args.limit
+                )
+                audit["clustered"] = cluster_result.clustered
+                audit["new_clusters"] = cluster_result.new_clusters
+                print(
+                    f"[cluster ] clustered={cluster_result.clustered} "
+                    f"new_clusters={cluster_result.new_clusters} "
+                    f"already_clustered={cluster_result.skipped_already_clustered}"
+                )
 
     return 0
 

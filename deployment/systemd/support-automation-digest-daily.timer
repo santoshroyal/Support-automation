@@ -1,0 +1,15 @@
+# 08:00 IST = 02:30 UTC (IST is UTC+5:30 with no DST).
+# OnCalendar runs in the system timezone; if the VM is on UTC, write
+# 02:30 here. If the VM is on Asia/Kolkata, write 08:00 here.
+# Verify with `systemctl show support-automation-digest-daily.timer -p NextElapseUSecRealtime`.
+
+[Unit]
+Description=Support Automation — Daily digest at 08:00 IST
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 Asia/Kolkata
+Persistent=true
+Unit=support-automation-digest-daily.service
+
+[Install]
+WantedBy=timers.target

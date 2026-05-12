@@ -1,0 +1,47 @@
+# Times of India — Support Automation API service.
+#
+# Always-on uvicorn process that serves both the JSON API and the React
+# dashboard SPA. Bound to 127.0.0.1 — never expose without an auth-aware
+# reverse proxy (see ADR-006).
+#
+# Install:
+#   cp deployment/systemd/support-automation-api.service /etc/systemd/system/
+#   systemctl daemon-reload
+#   systemctl enable --now support-automation-api.service
+#
+# Edit `/opt/support-automation` below if the code lives elsewhere.
+
+[Unit]
+Description=Support Automation — JSON API + dashboard
+Documentation=https://github.com/santoshroyal/Support-automation
+After=postgresql.service network-online.target
+Wants=postgresql.service network-online.target
+
+[Service]
+Type=simple
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/uvicorn entrypoints.web_api.main:app --host 127.0.0.1 --port 8080
+Restart=on-failure
+RestartSec=5
+# Cap respawn churn: if uvicorn dies 5 times within 60 s, stop trying so
+# the failure surfaces in `systemctl status` instead of looping forever.
+StartLimitBurst=5
+StartLimitIntervalSec=60
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-api
+# Reasonable resource caps for a single-host phase-1 deployment.
+MemoryMax=2G
+TasksMax=512
+# Hardening — defence in depth even though we trust the VM perimeter.
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service
+
+[Install]
+WantedBy=multi-user.target

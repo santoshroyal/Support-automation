@@ -1,0 +1,10 @@
+[Unit]
+Description=Support Automation — Classify + cluster every 15 minutes
+
+[Timer]
+OnCalendar=*:5/15
+Persistent=true
+Unit=support-automation-classify.service
+
+[Install]
+WantedBy=timers.target

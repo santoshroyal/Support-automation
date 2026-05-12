@@ -1,0 +1,13 @@
+# Trigger support-automation-ingest.service every 15 minutes.
+# `Persistent=true` means missed runs (e.g., VM was off) catch up on boot.
+
+[Unit]
+Description=Support Automation — Ingest feedback every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=true
+Unit=support-automation-ingest.service
+
+[Install]
+WantedBy=timers.target

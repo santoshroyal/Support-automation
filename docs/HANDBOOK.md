@@ -197,22 +197,104 @@ chain:
 
 ## Pre-flight checklist before going live with real stakeholders
 
-- [ ] All credentials placed in `secrets/`; `scripts/verify_credentials.py`
-      returns ✓ for every source.
-- [ ] `GET /api/health` (when phase 1f ships) returns 200 with all sources green.
-- [ ] System has run for ≥ 24 hours with `notification.mode = local` —
-      digests written to disk, reviewed by a human for accuracy.
-- [ ] Spike thresholds tuned in `config_files/thresholds.yaml`. The
-      defaults (`min_count=2`, `ratio=2.0`) are aggressive for fixture
-      volumes; production volumes typically warrant `min_count=5`,
-      `ratio=3.0`.
-- [ ] Stakeholder email list reviewed in
-      `config_files/stakeholders.yaml`.
-- [ ] Prompt templates reviewed (`prompts/classify_feedback.md`, plus
-      future `prompts/draft_reply.md`).
-- [ ] Daily monitoring rhythm agreed: someone checks `digest_log` and
-      (later) `audit_log` daily for the first 2 weeks.
-- [ ] Then flip `notification.mode = "real"`.
+This is the one-page list to walk through before flipping the first
+source from `mode=local` to `mode=real`. The system has been running on
+fixtures end-to-end for a while; this list is what stops the "we went
+live and immediately spammed 50 stakeholders" class of failure.
+
+### Infrastructure
+
+- [ ] **Code is on the VM at `/opt/support-automation`** with the
+      systemd user (`support-automation`) owning everything.
+- [ ] **PostgreSQL 16 + pgvector** are installed and running locally
+      on the VM. `psql -U support_automation -c "SELECT 1;"` succeeds
+      under the service account.
+- [ ] **Alembic schema is current.** `.venv/bin/alembic current`
+      prints a real revision id (e.g. `0001 (head)`), not blank.
+- [ ] **`/etc/support-automation/env`** is in place with the right
+      `SUPPORT_AUTOMATION_DATABASE_URL`, mode flags for every source
+      (still `local` everywhere at this stage), and 640 file perms
+      owned by the service account.
+- [ ] **All eight systemd units** are installed and enabled:
+      `systemctl list-timers 'support-automation-*'` shows 7 timers
+      with a `NEXT` column populated; the API service is `active
+      (running)`.
+- [ ] **`make ci-headless` passes locally** after a fresh `git pull`
+      on the VM — proves the deployed code matches what's in version
+      control.
+
+### Health and observability
+
+- [ ] **`GET /api/health` returns 200** with `status: "healthy"` and
+      every check green (`database`, `language_model`,
+      `embedding_model`).
+- [ ] **Audit log has entries from every cron**. After one full hour
+      of running, run:
+      ```bash
+      psql -c "SELECT actor, count(*) FROM audit_log WHERE occurred_at > now() - interval '2 hours' GROUP BY actor ORDER BY actor;"
+      ```
+      Every cron actor should appear at least once.
+- [ ] **Dashboard Audit Log page** loads, populated, and refreshes.
+      `http://127.0.0.1:8080/audit` over SSH tunnel.
+- [ ] **journald has no repeated failures**:
+      ```bash
+      journalctl -t support-automation-failure --since "24 hours ago" | wc -l
+      ```
+      Should be 0.
+
+### Content and configuration
+
+- [ ] **Stakeholder email list reviewed** in
+      `config_files/stakeholders.yaml`. Every address on the list is
+      currently active and the right person to receive the digest.
+- [ ] **Spike thresholds tuned** in `config_files/thresholds.yaml`.
+      Defaults (`min_count=2`, `ratio=2.0`) are aggressive for fixture
+      volumes — production typically wants `min_count=5`, `ratio=3.0`.
+- [ ] **Prompt templates reviewed** by a human:
+      - `prompts/classify_feedback.md`
+      - `prompts/draft_reply.md` (post-ADR-022 — confirm tone rules
+        still match current support-team voice)
+- [ ] **Apps registry** in `config_files/apps.yaml` lists the apps
+      you actually want to ingest from. Spelling matters — `app_slug`
+      is a foreign-key-like identifier across feedback, drafts, and
+      analytics.
+
+### The 24-48-hour shadow run
+
+- [ ] **Run for ≥ 24 h with `notification.mode = local`.** Digests
+      are written to `/var/log/support-automation/digests/` as HTML
+      files; a human opens at least 2 of them in a browser and
+      confirms they read like what stakeholders should receive.
+- [ ] **Inspect 5 random drafts** via the Drafts page. Confirm: no
+      internal IDs leaked, no bracket citation markers, language matches
+      the original feedback, body reads like something the support
+      team would send.
+- [ ] **Inspect any spike that fired**. Open the spike's
+      drill-down; verify the sample feedbacks are genuinely related
+      and that the ratio makes sense.
+
+### People
+
+- [ ] **On-call rotation agreed** — who reads `journalctl -t
+      support-automation-failure` daily for the first 2 weeks?
+- [ ] **The on-call person has read `docs/HANDBOOK.md` runbook
+      section** ("When something breaks in production") and knows where
+      it is.
+- [ ] **Rollback plan agreed** — one named person can flip
+      `notification.mode = local` if the live digest goes wrong (single
+      env file edit + `systemctl restart 'support-automation-*.timer'`).
+
+### Flip the switch
+
+Only after every box above is ticked:
+
+- [ ] Set the first source to `mode=real` in `/etc/support-automation/env`
+      (typically Confluence or Sheets first — read-only and reversible).
+- [ ] Restart timers: `sudo systemctl restart 'support-automation-*.timer'`.
+- [ ] Watch the audit log + journald for one cron cycle.
+- [ ] Repeat for the next source 24 h later if the previous flip held.
+- [ ] `notification.mode = real` is the **last** flip — only after the
+      digest output has been reviewed across at least one weekend.
 
 ## Rollback to local mode
 
@@ -243,3 +325,250 @@ If a secret leaks (committed accidentally, posted in chat, etc.):
 2. Generate a new credential.
 3. Replace `secrets/<file>` on the VM.
 4. Restart the cron timers (`systemctl restart 'support-automation-*.timer'`).
+
+---
+
+## Changing the database schema (Alembic)
+
+The schema is owned by Alembic (ADR-025). The ORM models in
+`adapters/persistence/orm_models.py` are the source of truth; Alembic
+diffs them against the live database to produce numbered migrations
+under `migrations/versions/`. Every migration has an `upgrade()` and a
+`downgrade()` — schema changes are reviewable in PRs and reversible at
+runtime.
+
+### Common workflow — add or change a column
+
+```bash
+# 1. Edit the ORM model in adapters/persistence/orm_models.py.
+#    Example: add `country_code: Mapped[str | None] = mapped_column(String(2), nullable=True)`
+#    to FeedbackOrm.
+
+# 2. Make sure the database you're pointed at is at the current head.
+export SUPPORT_AUTOMATION_DATABASE_URL=postgresql+psycopg://$USER@localhost/support_automation_local
+.venv/bin/alembic current     # expect a clean revision id
+
+# 3. Generate the migration. Alembic compares your ORM change to the DB.
+.venv/bin/alembic revision --autogenerate -m "add country_code to feedback"
+
+# 4. **Review the generated file** under migrations/versions/.
+#    Autogenerate is good but not perfect — column renames look like
+#    drop + add; check the upgrade() and downgrade() both make sense.
+#    Commit the file when you're happy.
+
+# 5. Apply it.
+.venv/bin/alembic upgrade head
+
+# 6. Verify.
+psql -d support_automation_local -c "\d feedback"
+```
+
+### Rollback
+
+```bash
+.venv/bin/alembic downgrade -1   # roll back the most recent migration
+.venv/bin/alembic downgrade <revision-id>   # roll back to a specific revision
+```
+
+The downgrade is only as good as the migration's `downgrade()` function
+— review the autogenerated downgrade when you create the migration.
+
+### Useful commands
+
+```bash
+alembic current                        # show current revision of the connected DB
+alembic history                        # show the linear migration history
+alembic upgrade head                   # apply all pending migrations
+alembic upgrade +1                     # apply one migration
+alembic downgrade -1                   # roll back one migration
+alembic stamp head                     # mark current state as up-to-date WITHOUT running anything
+                                       # (use when bootstrapping a DB whose schema was created another way)
+```
+
+### What's NOT covered by Alembic
+
+- The in-memory backend tests. They don't talk to Alembic at all —
+  they use plain Python objects. `make ci-headless` keeps passing.
+- The Postgres integration tests. They create their own
+  `*_test`-suffixed throwaway database fresh on every pytest run via
+  `Base.metadata.create_all()`. Single-run lifetime; nothing to
+  migrate.
+- Data migrations (e.g. "rename all feedbacks where app_slug='x' to
+  'y'"). Alembic supports them via `op.execute("UPDATE …")`, but
+  phase 1 hasn't needed any; the pattern would be added when the
+  first data-migration is actually required.
+
+### When something goes wrong
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `alembic upgrade head` says "Target database is not up to date." | A migration applied partially and rolled back. | `alembic current` to see where you are; resolve manually if the DB has half-applied DDL. |
+| Autogenerate produced an empty migration | The ORM model and DB are already in sync; you forgot to edit the ORM. | Edit `orm_models.py` first, then re-run autogenerate. |
+| Autogenerate produced a migration that drops tables you want to keep | You ran autogenerate against the wrong database. | Discard the generated file, point `SUPPORT_AUTOMATION_DATABASE_URL` at the right database, re-run. |
+| Alembic complains about pgvector types | `pgvector` Python package not installed in the venv. | `.venv/bin/pip install pgvector` — already a project dep, this only happens if the venv drifted. |
+
+---
+
+## When something breaks in production (runbook)
+
+The system runs unattended on the VM. When you're paged or notice
+something off, work through the relevant section below. Each one is
+diagnose → fix → verify.
+
+### 1. The API isn't responding
+
+**Diagnose:**
+```bash
+# Is the service actually up?
+sudo systemctl status support-automation-api.service
+
+# What did it last say?
+journalctl -u support-automation-api.service --since "30 minutes ago" -n 200
+
+# Can the process see the database?
+curl -s http://127.0.0.1:8080/api/health
+```
+
+**Likely causes + fixes:**
+
+| What you see | Cause | Fix |
+|---|---|---|
+| `Active: failed (Result: exit-code)` | Postgres unreachable, env file missing, or port already taken | Read the last error lines from journalctl; usually the cause is right there. |
+| `/api/health` returns 200 but says `database` unhealthy | Postgres down, or the `SUPPORT_AUTOMATION_DATABASE_URL` is stale | `sudo systemctl status postgresql`; restart it if needed; check the env file |
+| `/api/health` returns 200 but says `language_model` unhealthy | The `claude` / `codex` CLI auth expired on the service account | Switch language_model.primary to a working model in the env file; re-run support-automation-api.service |
+
+**Verify:** `curl -s http://127.0.0.1:8080/api/health | jq '.status'` returns `"healthy"`.
+
+---
+
+### 2. A cron job is failing repeatedly
+
+**Diagnose:**
+```bash
+# Find every failure tagged by the OnFailure handler:
+journalctl -t support-automation-failure --since "24 hours ago"
+
+# Read the failing cron's last run:
+journalctl -u support-automation-draft.service -n 200 --no-pager
+
+# How often did it run lately?
+systemctl list-timers 'support-automation-*' --all
+```
+
+**Likely causes + fixes:**
+
+| What you see | Cause | Fix |
+|---|---|---|
+| `cron_lock could not acquire lock` repeatedly | A previous run hung and never released its advisory lock | `psql -d support_automation -c "SELECT pg_advisory_unlock_all();"` from a fresh session, or restart Postgres |
+| `subprocess.TimeoutExpired` on the language model | `claude` / `codex` CLI hanging | Verify `claude --version` works under the service user; failing that, downgrade the model in the env file |
+| `psycopg.OperationalError: connection refused` | Postgres down | `sudo systemctl restart postgresql` |
+| `Permission denied` on a fixture or secret | File mode wrong after a `git pull` | `sudo chown -R support-automation:support-automation /opt/support-automation /etc/support-automation` |
+
+**Verify:** trigger the cron manually:
+```bash
+sudo systemctl start support-automation-draft.service
+journalctl -u support-automation-draft.service -n 50 --no-pager
+```
+Look for `<actor>.finished` in the most recent log lines, or check the dashboard's Audit Log page.
+
+---
+
+### 3. The daily digest didn't send
+
+**Diagnose:**
+```bash
+# Did the timer fire?
+systemctl list-timers support-automation-digest-daily.timer --all
+journalctl -u support-automation-digest-daily.service -n 100
+
+# Did the service know who to send to?
+psql -d support_automation -c "SELECT type, sent_at, recipients_jsonb, error FROM digest_log ORDER BY sent_at DESC LIMIT 5;"
+```
+
+**Likely causes + fixes:**
+
+| What you see | Cause | Fix |
+|---|---|---|
+| Timer last triggered hours ago, not at 08:00 | Timezone mismatch between VM and the `Asia/Kolkata` specifier | Verify `timedatectl`; either set the VM TZ to IST or change the timer's `OnCalendar` to the UTC equivalent (02:30) |
+| `digest_log.error` is `"smtp_unauthorized"` | SMTP password rotated | Replace `secrets/smtp_password` and restart the digest timer |
+| `digest_log.recipients_jsonb` is `null` or `[]` | Stakeholder file is empty | Re-check `config_files/stakeholders.yaml`; the file is engineer-managed |
+| No row in `digest_log` at all | The timer fired but the service exited before reaching the sender | Look at `journalctl -u support-automation-digest-daily.service -n 200` for the actual error |
+
+**Verify:**
+```bash
+sudo systemctl start support-automation-digest-daily.service
+ls -lt /var/log/support-automation/digests/ | head -5
+```
+Latest digest file should be from the last few minutes.
+
+---
+
+### 4. Disk is filling up
+
+**Diagnose:**
+```bash
+df -h /
+sudo du -sh /var/log/journal /var/log/support-automation /opt/support-automation/var
+```
+
+**Likely causes + fixes:**
+
+| What you see | Cause | Fix |
+|---|---|---|
+| `/var/log/journal/...` is many GB | journald keeping logs forever | Edit `/etc/systemd/journald.conf`: set `SystemMaxUse=2G` and `MaxRetentionSec=30day`; `sudo systemctl restart systemd-journald` |
+| `/var/log/support-automation/digests/` is huge | Notification mode is `local` and never flipped to `real` | Either flip to `real` or add a cron to delete files older than 30 d |
+| `/opt/support-automation/var/support_automation/drafts/` is huge | Drafts have been written for months and never archived | Same: archive or delete files older than 30 d |
+| Postgres data dir > 50% of disk | Audit log table growing unbounded | `psql -c "SELECT pg_size_pretty(pg_relation_size('audit_log'));"`; if needed, delete rows older than 90 d in the SQL prompt |
+
+**Verify:** `df -h /` shows comfortable headroom (>20%).
+
+---
+
+### 5. Atlassian / SMTP / Play credentials expired
+
+**Diagnose:**
+```bash
+journalctl -u support-automation-knowledge-sync.service -n 200 | grep -iE "401|403|unauthor"
+```
+
+**Fix:**
+
+1. Regenerate the credential at the source (Atlassian → API tokens, SMTP provider, Play Console → API access).
+2. Update the matching file under `secrets/` on the VM. `chmod 600` it.
+3. Restart all timers so the next run picks up the new credential:
+   ```bash
+   sudo systemctl restart 'support-automation-*.timer'
+   ```
+4. Trigger one cron manually to confirm:
+   ```bash
+   sudo systemctl start support-automation-knowledge-sync.service
+   ```
+
+**Verify:** the knowledge-sync section of `/api/knowledge/sources` shows a fresh `latest_document_at` after the manual run.
+
+---
+
+### 6. The API returns a lot of 500s
+
+**Diagnose:**
+```bash
+# Pull recent error logs:
+journalctl -u support-automation-api.service --since "1 hour ago" | grep '"level": "ERROR"'
+
+# Each 500 in the response carries a trace_id; grep journald for it:
+journalctl -u support-automation-api.service | grep '<trace_id_from_response>'
+```
+
+**Likely causes + fixes:**
+
+| What you see | Cause | Fix |
+|---|---|---|
+| Many `psycopg.OperationalError` | Postgres connection pool exhausted | Reduce dashboard polling interval, restart the API service, or bump `pool_size` in `adapters/persistence/database.py` |
+| Many `KnowledgeRetrievalError` | pgvector extension dropped or HNSW index corrupted | `psql -c "REINDEX INDEX ix_knowledge_chunk_embedding_hnsw;"` |
+| One specific trace_id repeats | A bug introduced by a recent deploy | Roll back the deploy or hotfix the specific route |
+
+**Verify:** error rate drops to zero in journald grep output. Quick way:
+```bash
+journalctl -u support-automation-api.service --since "5 minutes ago" | grep -c '"level": "ERROR"'
+```
+Should be near zero on a healthy system.

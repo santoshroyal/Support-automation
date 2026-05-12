@@ -1,0 +1,25 @@
+# One-shot cron: pull new feedback from every configured source.
+# Scheduled by support-automation-ingest.timer (every 15 min).
+
+[Unit]
+Description=Support Automation — Ingest feedback (one pass)
+After=postgresql.service network-online.target
+Wants=postgresql.service network-online.target
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/python -m entrypoints.cli.ingest_feedback_cli --once
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-ingest
+# A single run that takes longer than 10 min is almost certainly stuck.
+TimeoutStartSec=600
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service

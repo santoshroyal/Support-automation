@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from adapters.settings.app_registry import AppRegistry
 from entrypoints.composition_root import WiredApp, build_app
+from service_layer.ports.audit_log_repository_port import AuditLogRepositoryPort
 from service_layer.ports.classification_repository_port import (
     ClassificationRepositoryPort,
 )
@@ -63,3 +64,7 @@ def draft_reply_repository() -> DraftReplyRepositoryPort:
 
 def app_registry() -> AppRegistry:
     return build_app().app_registry
+
+
+def audit_log_repository() -> AuditLogRepositoryPort:
+    return build_app().audit_log_repository

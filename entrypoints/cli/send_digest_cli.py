@@ -17,6 +17,7 @@ import sys
 from contextlib import contextmanager, nullcontext
 from typing import Iterator
 
+from entrypoints.cli.audit_helper import cron_audit
 from entrypoints.composition_root import build_app
 
 _VALID_TYPES = ("hourly", "daily")
@@ -36,7 +37,14 @@ def main(argv: list[str] | None = None) -> int:
         if acquired is False:
             print(f"[{job_name}] previous run still in flight; skipping.", file=sys.stderr)
             return 0
-        result = use_case.run()
+        with cron_audit(app.audit_log_repository, job_name) as audit:
+            result = use_case.run()
+            audit["digest_type"] = result.digest_type
+            audit["spikes_in_window"] = result.spikes_in_window
+            audit["recipients"] = result.recipients
+            audit["sent"] = result.sent
+            if result.error:
+                audit["error"] = result.error
 
     print(
         f"[send_digest:{result.digest_type}] "

@@ -455,6 +455,142 @@ showed a clear win.
 
 ---
 
+## ADR-025 — Alembic owns schema changes; bootstrap_schema.py is a thin wrapper
+
+**Context.** Before this ADR, the schema was created by
+`scripts/bootstrap_schema.py` calling `Base.metadata.create_all()`.
+That works exactly once: the first time it runs against an empty
+database. It cannot add a column, drop a constraint, rename a table,
+or do anything else to an existing schema — it silently no-ops. The
+first time we need to change the schema on a database that has data
+(prod, staging, dev with a long-running DB), there is no safe path.
+Manual `ALTER TABLE` is the alternative, with no record of what was
+applied where.
+
+**Decision.** Adopt Alembic as the schema-change tool. The setup:
+
+- Alembic is configured in `alembic.ini` and `migrations/env.py`.
+- `migrations/env.py` reads the database URL from the same env var the
+  app uses (`SUPPORT_AUTOMATION_DATABASE_URL`) and uses
+  `Base.metadata` from `adapters/persistence/orm_models.py` as the
+  source of truth for autogenerate.
+- The baseline migration `migrations/versions/0001_initial_baseline.py`
+  captures the full current schema as `op.create_table(...)` and
+  `op.create_index(...)` calls. The matching `downgrade()` drops
+  everything. A `CREATE EXTENSION IF NOT EXISTS vector` runs first so
+  pgvector columns work on a fresh database.
+- The pre-existing Postgres database was stamped at `0001` via
+  `alembic stamp head` so it does not try to re-create tables it
+  already has. Data is untouched.
+- `scripts/bootstrap_schema.py` is now a thin wrapper around
+  `alembic upgrade head`. Same command, same external behaviour;
+  Alembic underneath.
+
+**Why a baseline migration (vs. an empty marker):**
+An empty baseline plus stamp would work for the existing database, but
+would leave fresh databases (CI, new developer, replacement VM) with
+no way to construct the schema via Alembic. A real CREATE TABLE
+baseline means `alembic upgrade head` on a brand-new database produces
+exactly the same schema as the live system.
+
+**Consequences.**
+
+- **Schema changes are tracked.** Every change lives in a numbered file
+  under `migrations/versions/`, reviewable in PRs.
+- **Schema changes are reversible.** Each migration's `downgrade()`
+  function rolls it back; `alembic downgrade -1` is the escape hatch.
+- **Schema state is queryable.** `alembic current` tells you which
+  migration any database is at; `alembic_version` is a one-row table
+  in the database itself.
+- **No code outside `scripts/bootstrap_schema.py` and the new
+  `migrations/` tree changed.** ORM models, repositories, use cases,
+  API, dashboard — all untouched. `Base.metadata.create_all()` is no
+  longer called by application code, but the integration test
+  conftest still uses it for `*_test`-suffixed throwaway databases
+  (which is the right call — those databases live for the duration of
+  one pytest invocation; there's nothing to migrate).
+- **One extra dependency** (`alembic>=1.13`, already in
+  `pyproject.toml`).
+- **Operators have one new command to remember**: `alembic revision
+  --autogenerate -m "what changed"` to generate, then `alembic
+  upgrade head` to apply. `bootstrap_schema.py` continues to work for
+  the common case.
+
+The full operator workflow lives in `docs/HANDBOOK.md` — "Changing the
+schema".
+
+---
+
+## ADR-024 — Audit log lives at the outermost ring, not inside use cases
+
+**Context.** Phase 1h opened with the question "how do we know what the
+system did?" Without an audit trail, support staff have no way to
+answer the manager who asks "why was that spike alerted at 2 am?", and
+the system has no story for the compliance officer who will eventually
+ask "show me every reply that went out in Q2 and what facts grounded
+it." Phases 1a-1g produced data; phase 1h's first piece is the record
+of *actions taken*.
+
+**Decision.** Add a single append-only `audit_log` table, a single port
+(`AuditLogRepositoryPort` with `add()` and `list_recent()`), in-memory
+and Postgres implementations, and one `GET /api/audit` endpoint. The
+load-bearing design choice is **where the audit log is written from**:
+
+| Layer | Writes to audit log? | Why |
+|---|---|---|
+| `domain/` | No | Pure types. Stays decoupled from any side effects. |
+| `service_layer/use_cases/` | **No** | Use cases stay testable with zero new dependencies. None of the existing 95 unit tests change. |
+| `adapters/` | No | Repositories and source adapters don't know audit exists. |
+| `entrypoints/cli/` | **Yes** | This is where the lifecycle boundary is observable: a cron run has a clear start and a clear finish, with result counts available at the end. |
+| `entrypoints/web_api/` (future) | **Yes** | Same reasoning — the API layer is where requests have an observable boundary. |
+
+The wrapper that does the writing — `entrypoints/cli/audit_helper.py` —
+is a 30-line context manager. Each CLI gets ~5 new lines (the `with
+cron_audit(...) as audit:` block) and a dict update for the result
+counts. Business logic doesn't change in any file.
+
+Shape of `AuditLogEntry`:
+
+```python
+actor: str          # "draft-replies", "ingest-feedback", "send-digest-daily", "api"
+action: str         # "<actor>.started" | "<actor>.finished" | "<actor>.failed" | "<entity>.<verb>"
+entity_type: str | None
+entity_id: UUID | None
+details: dict       # free-form: counts, language model name, recipient list, error message
+occurred_at: datetime
+```
+
+`details` is deliberately a free-form `JSONB` column. Each call site
+records different metadata; we don't want a schema migration every time
+a new field becomes interesting. The dashboard renders it as key/value
+pairs.
+
+**Consequences.**
+
+- The system can now answer forensic questions in seconds: "what did
+  draft-replies do yesterday?" is `actor=draft-replies` filtered to a
+  day; the Audit Log page in the dashboard exposes this directly.
+- The audit trail is **append-only**. The port has no update or delete
+  method, and the Postgres adapter exposes neither. Editable audit
+  trails aren't audit trails.
+- Disabling the audit log is a one-line change in each CLI (comment out
+  the `with cron_audit(...)` block). Use cases keep working, tests keep
+  passing.
+- One new table; no changes to existing tables; no schema migration
+  needed for any existing data. `bootstrap_schema.py` picks it up via
+  `Base.metadata.create_all()` (idempotent).
+- Web UI gets a sixth page (`/audit`). Outside `web_ui/`, the only
+  files touched by this whole change are: domain entity, port,
+  in-memory adapter, Postgres adapter, ORM addition, composition root,
+  Depends factory, audit router + schema, CLI helper, the six cron
+  CLIs (each ~5 lines), and the docs. No existing test breaks.
+
+Future work (later in 1h): the API surface should also write audit
+rows for sensitive reads — e.g., when a draft is fetched for review.
+For phase 1 the cron side is what carries the audit weight.
+
+---
+
 ## ADR-023 — Dashboard UI lives in `web_ui/` as a swappable React app
 
 **Context.** Support staff need a place to look at the data the cron
@@ -609,7 +745,7 @@ pointing at a copy of `swagger-ui-dist`.
 
 ## How to add a new ADR
 
-1. Pick the next number (ADR-024 at time of writing).
+1. Pick the next number (ADR-026 at time of writing).
 2. Write Context / Decision / Consequences. Aim for 5-12 lines per section.
 3. Link it from the relevant section of `ARCHITECTURE.md` if it's structural.
 4. If it supersedes an earlier decision, add a "Superseded by ADR-NNN" line

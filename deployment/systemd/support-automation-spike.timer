@@ -1,0 +1,10 @@
+[Unit]
+Description=Support Automation — Detect spikes every 30 minutes
+
+[Timer]
+OnCalendar=*:15/30
+Persistent=true
+Unit=support-automation-spike.service
+
+[Install]
+WantedBy=timers.target

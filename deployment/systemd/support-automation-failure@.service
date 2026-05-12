@@ -1,0 +1,19 @@
+# Template unit triggered when any support-automation-*.service unit fails.
+#
+# Usage from another unit:
+#     OnFailure=support-automation-failure@%n.service
+# `%n` expands to the failing unit's name, which becomes `%i` here.
+#
+# Phase 1 behaviour: write a clearly-tagged journal line so
+# `journalctl -t support-automation-failure` surfaces every failure
+# in one query. Phase 2 swaps in an email or Slack notifier — change
+# `ExecStart` to your preferred sender; everything else can stay as-is.
+
+[Unit]
+Description=Support Automation — failure notification for %i
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+ExecStart=/bin/sh -c '/usr/bin/logger -t support-automation-failure "FAILED: %i — see: journalctl -u %i --no-pager -n 100"'

@@ -1,0 +1,24 @@
+# One-shot cron: sync Confluence, JIRA, and Google Sheets into the knowledge base.
+# Scheduled by support-automation-knowledge-sync.timer (every 90 min).
+
+[Unit]
+Description=Support Automation — Knowledge base sync (one pass)
+After=postgresql.service network-online.target
+Wants=postgresql.service network-online.target
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/python -m entrypoints.cli.sync_knowledge_base_cli --once
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-knowledge-sync
+TimeoutStartSec=1800
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service

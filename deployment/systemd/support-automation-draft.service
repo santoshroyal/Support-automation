@@ -1,0 +1,25 @@
+# One-shot cron: draft a reply for every follow-up-worthy feedback that doesn't have one.
+# Scheduled by support-automation-draft.timer (every 15 min).
+
+[Unit]
+Description=Support Automation — Draft replies (one pass)
+After=postgresql.service network-online.target support-automation-classify.service
+Wants=postgresql.service network-online.target
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/python -m entrypoints.cli.draft_replies_cli --once
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-draft
+# Drafting is the slowest cron (RAG retrieval + Claude per item).
+TimeoutStartSec=1800
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service

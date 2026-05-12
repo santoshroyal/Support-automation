@@ -17,6 +17,7 @@ import sys
 from contextlib import contextmanager, nullcontext
 from typing import Iterator
 
+from entrypoints.cli.audit_helper import cron_audit
 from entrypoints.composition_root import build_app
 
 _JOB_NAME = "draft-replies"
@@ -36,7 +37,14 @@ def main(argv: list[str] | None = None) -> int:
         if acquired is False:
             print(f"[{_JOB_NAME}] previous run still in flight; skipping.", file=sys.stderr)
             return 0
-        result = use_case.run(app_slug=args.app_slug, limit=args.limit)
+        with cron_audit(app.audit_log_repository, _JOB_NAME) as audit:
+            result = use_case.run(app_slug=args.app_slug, limit=args.limit)
+            audit["drafted"] = result.drafted
+            audit["skipped_no_classification"] = result.skipped_no_classification
+            audit["skipped_no_followup"] = result.skipped_no_followup
+            audit["skipped_already_drafted"] = result.skipped_already_drafted
+            audit["failed"] = result.failed
+            audit["language_model"] = app.language_model.name
 
     print(
         f"[draft] drafted={result.drafted} "

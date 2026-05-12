@@ -1,0 +1,10 @@
+[Unit]
+Description=Support Automation — Hourly digest
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+Unit=support-automation-digest-hourly.service
+
+[Install]
+WantedBy=timers.target

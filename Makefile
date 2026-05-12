@@ -6,7 +6,7 @@
 # python instead of relying on `pytest` etc. being on $PATH.
 PYTHON ?= .venv/bin/python
 
-.PHONY: help install build build-web setup-postgres bootstrap-local run-all-once run-ingest run-classify run-knowledge-sync run-draft-replies run-detect-spikes run-send-digest test test-unit test-integration ci-local ci-headless lint typecheck clean
+.PHONY: help install build build-web setup-postgres bootstrap-local run-all-once run-ingest run-classify run-knowledge-sync run-draft-replies run-detect-spikes run-send-digest test test-unit test-integration ci-local ci-headless lint typecheck clean install-systemd uninstall-systemd
 
 help:
 	@echo "Common targets:"
@@ -21,6 +21,8 @@ help:
 	@echo "  test-unit            Unit tests only (no I/O)"
 	@echo "  ci-local             CI pipeline: lint + unit + local-mode end-to-end"
 	@echo "  ci-headless          ci-local with web_ui/ removed (proves UI is swappable)"
+	@echo "  install-systemd      Install + enable systemd units (run as root on the VM)"
+	@echo "  uninstall-systemd    Stop, disable, and remove the units (run as root)"
 	@echo "  lint                 ruff"
 	@echo "  typecheck            mypy"
 
@@ -114,3 +116,46 @@ typecheck:
 clean:
 	rm -rf build dist *.egg-info .pytest_cache .ruff_cache .mypy_cache
 	find . -type d -name __pycache__ -exec rm -rf {} +
+
+# Install + enable every systemd unit. Run as root on the production VM
+# AFTER deploying the code to /opt/support-automation and writing
+# /etc/support-automation/env. Idempotent: re-running just refreshes
+# the unit definitions and re-applies `enable --now`.
+install-systemd:
+	@echo "Installing units to /etc/systemd/system/ ..."
+	install -m 644 deployment/systemd/support-automation-api.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-failure@.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-ingest.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-ingest.timer /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-classify.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-classify.timer /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-knowledge-sync.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-knowledge-sync.timer /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-draft.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-draft.timer /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-spike.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-spike.timer /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-digest-hourly.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-digest-hourly.timer /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-digest-daily.service /etc/systemd/system/
+	install -m 644 deployment/systemd/support-automation-digest-daily.timer /etc/systemd/system/
+	systemctl daemon-reload
+	systemctl enable --now \
+	    support-automation-api.service \
+	    support-automation-ingest.timer \
+	    support-automation-classify.timer \
+	    support-automation-knowledge-sync.timer \
+	    support-automation-draft.timer \
+	    support-automation-spike.timer \
+	    support-automation-digest-hourly.timer \
+	    support-automation-digest-daily.timer
+	@echo "✓ Installed. Inspect with: systemctl list-timers 'support-automation-*'"
+
+uninstall-systemd:
+	@echo "Stopping and disabling units ..."
+	-systemctl disable --now 'support-automation-*.timer'
+	-systemctl disable --now support-automation-api.service
+	rm -f /etc/systemd/system/support-automation-*.service
+	rm -f /etc/systemd/system/support-automation-*.timer
+	systemctl daemon-reload
+	@echo "✓ Uninstalled. Code at /opt/support-automation and /etc/support-automation/env are untouched."

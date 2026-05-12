@@ -35,6 +35,7 @@ export type CategoriesResponse = Schemas['CategoriesResponse']
 export type CategoryCount = Schemas['CategoryCount']
 export type AppResponse = Schemas['AppResponse']
 export type HealthResponse = Schemas['HealthResponse']
+export type AuditLogItem = Schemas['AuditLogItem']
 
 // ─── Filter shape used by most list endpoints
 
@@ -188,5 +189,20 @@ export function useCategoryMix(filters: AnalyticsFilters) {
     queryFn: () =>
       get<CategoriesResponse>(`/api/analytics/categories${buildQuery(filters)}`),
     refetchInterval: 5 * 60_000,
+  })
+}
+
+/** GET /api/audit */
+export type AuditFilters = {
+  actor?: string
+  since?: string
+  limit?: number
+}
+
+export function useAuditLog(filters: AuditFilters) {
+  return useQuery({
+    queryKey: ['audit', filters],
+    queryFn: () => get<AuditLogItem[]>(`/api/audit${buildQuery(filters)}`),
+    refetchInterval: 30_000,
   })
 }

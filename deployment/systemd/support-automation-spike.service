@@ -1,0 +1,25 @@
+# One-shot cron: scan clusters for spikes and record any new ones.
+# Scheduled by support-automation-spike.timer (every 30 min).
+
+[Unit]
+Description=Support Automation — Detect complaint spikes (one pass)
+After=postgresql.service support-automation-classify.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/python -m entrypoints.cli.detect_spikes_cli --once
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-spike
+# Pure SQL aggregation — should be done in under 30 s on phase-1 volumes.
+TimeoutStartSec=300
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service

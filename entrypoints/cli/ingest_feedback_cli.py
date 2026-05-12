@@ -15,6 +15,7 @@ from collections import defaultdict
 from contextlib import contextmanager, nullcontext
 from typing import Iterator
 
+from entrypoints.cli.audit_helper import cron_audit
 from entrypoints.composition_root import build_app
 from service_layer.use_cases.ingest_feedback import IngestFeedbackResult
 
@@ -34,7 +35,12 @@ def main(argv: list[str] | None = None) -> int:
         if acquired is False:
             print(f"[{_JOB_NAME}] previous run still in flight; skipping.", file=sys.stderr)
             return 0
-        results = use_case.run()
+        with cron_audit(app.audit_log_repository, _JOB_NAME) as audit:
+            results = use_case.run()
+            audit["sources_run"] = len(results)
+            audit["inserted"] = sum(r.inserted for r in results)
+            audit["duplicates"] = sum(r.duplicates for r in results)
+            audit["fetched"] = sum(r.fetched for r in results)
 
     if args.json:
         _print_json(results)

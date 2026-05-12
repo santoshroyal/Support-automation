@@ -1,0 +1,24 @@
+# One-shot cron: build and send the hourly stakeholder digest.
+# Scheduled by support-automation-digest-hourly.timer (every hour).
+
+[Unit]
+Description=Support Automation — Hourly stakeholder digest (one pass)
+After=postgresql.service network-online.target support-automation-spike.service
+Wants=postgresql.service network-online.target
+
+[Service]
+Type=oneshot
+User=support-automation
+Group=support-automation
+WorkingDirectory=/opt/support-automation
+EnvironmentFile=/etc/support-automation/env
+ExecStart=/opt/support-automation/.venv/bin/python -m entrypoints.cli.send_digest_cli --type=hourly --once
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=support-automation-digest-hourly
+TimeoutStartSec=300
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+OnFailure=support-automation-failure@%n.service

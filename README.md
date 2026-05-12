@@ -98,7 +98,7 @@ PostgreSQL client.
 .venv/bin/python -m pytest -v
 ```
 
-Expect **157 tests passing** (90 unit + 17 file-based integration + 15 PostgreSQL integration + 35 API tests).
+Expect **170 tests passing** (95 unit + 17 file-based integration + 15 PostgreSQL integration + 43 API tests).
 The unit suite runs in milliseconds against fakes; the integration
 suite needs `SUPPORT_AUTOMATION_DATABASE_URL` set and uses a separate
 `*_test`-suffixed database, so it never touches your main data.
@@ -132,7 +132,7 @@ suite needs `SUPPORT_AUTOMATION_DATABASE_URL` set and uses a separate
 | 1e | Spike detection + stakeholder digest | ✅ shipped |
 | 1f | Read-only JSON API (FastAPI) — health, apps, feedback, drafts, spikes, knowledge/sources, analytics/volume, analytics/categories | ✅ shipped |
 | 1g | React dashboard (Vite + TS + Tailwind + shadcn; Inbox, Drafts, Spikes, Knowledge, Analytics; isolated under `web_ui/`) | ✅ shipped |
-| 1h | Hardening (audit log, runbook, systemd timers) | ⏳ pending |
+| 1h | Hardening — audit log, Alembic, systemd units, JSON logging, sanitised 500s, runbook, pre-flight checklist | ✅ shipped |
 
 The original brainstorm + plan lives at
 `~/.claude/plans/we-have-to-brainstorm-gleaming-globe.md`.

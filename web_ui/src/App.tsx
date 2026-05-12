@@ -13,6 +13,7 @@ import DraftsPage from '@/pages/DraftsPage'
 import SpikesPage from '@/pages/SpikesPage'
 import KnowledgePage from '@/pages/KnowledgePage'
 import AnalyticsPage from '@/pages/AnalyticsPage'
+import AuditLogPage from '@/pages/AuditLogPage'
 
 const NAV = [
   { to: '/inbox', label: 'Inbox' },
@@ -20,6 +21,7 @@ const NAV = [
   { to: '/spikes', label: 'Spikes' },
   { to: '/knowledge', label: 'Knowledge' },
   { to: '/analytics', label: 'Analytics' },
+  { to: '/audit', label: 'Audit log' },
 ]
 
 export default function App() {
@@ -63,6 +65,7 @@ export default function App() {
           <Route path="/spikes" element={<SpikesPage />} />
           <Route path="/knowledge" element={<KnowledgePage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/audit" element={<AuditLogPage />} />
           <Route path="*" element={<Navigate to="/inbox" replace />} />
         </Routes>
       </main>
