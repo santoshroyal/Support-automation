@@ -114,7 +114,7 @@ What that buys us:
 | 1d — Drafting + delivery | ✅ shipped | `draft_reply` |
 | 1e — Spike detection + digest | ✅ shipped | `spike_event`, `digest_log` |
 | 1f — JSON API (FastAPI) | ✅ shipped (health, apps, feedback, drafts, spikes, knowledge/sources, analytics/volume, analytics/categories) | (no new tables) |
-| 1g — React UI | ⏳ pending | (no new tables) |
+| 1g — React UI | ✅ shipped (Vite + React + TS + Tailwind + shadcn + TanStack Query + Recharts; 5 pages; isolation enforced by `make ci-headless`) | (no new tables) |
 | 1h — Hardening | ⏳ pending | `audit_log` |
 
 Test count today: **157** (90 unit + 17 file-based integration + 15 Postgres integration + 35 API). Every PR

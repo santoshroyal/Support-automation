@@ -32,6 +32,7 @@ from entrypoints.web_api.routers import (
     knowledge_routes,
     spike_routes,
 )
+from entrypoints.web_api.static_mount import mount_web_ui
 
 
 def create_app() -> FastAPI:
@@ -52,6 +53,7 @@ def create_app() -> FastAPI:
     app.include_router(analytics_routes.router)
 
     register_error_handlers(app)
+    mount_web_ui(app)  # the entire UI seam — remove this line to drop the SPA
     return app
 
 

@@ -57,6 +57,28 @@ curl http://127.0.0.1:8080/api/apps
 curl "http://127.0.0.1:8080/api/feedback?app=toi&platform=ios"
 ```
 
+### Dashboard (phase 1g)
+
+```bash
+# Build the React SPA once (also runs `pip install` if needed):
+make build
+
+# Run uvicorn — both the SPA and the API are served from the same port.
+.venv/bin/uvicorn entrypoints.web_api.main:app --host 127.0.0.1 --port 8080
+#   →  http://127.0.0.1:8080/         dashboard (Inbox, Drafts, Spikes, ...)
+#   →  http://127.0.0.1:8080/api/...  JSON API
+#   →  http://127.0.0.1:8080/api/docs Swagger UI
+
+# When iterating on the UI, run Vite's dev server alongside FastAPI for
+# hot reload — Vite proxies /api/* through to FastAPI automatically.
+cd web_ui && NODE_OPTIONS="--use-system-ca" npm run dev   # → http://localhost:5173
+
+# Drop the UI later if it stops earning its keep — `rm -rf web_ui/` plus
+# commenting one line in entrypoints/web_api/static_mount.py leaves a
+# fully working JSON + cron system. The CI target `make ci-headless`
+# verifies this on every change.
+```
+
 After this you'll have:
 
 - 15 feedback rows across 3 apps × 3 channels in `feedback`
@@ -109,7 +131,7 @@ suite needs `SUPPORT_AUTOMATION_DATABASE_URL` set and uses a separate
 | 1d | Drafting + delivery (RAG-grounded replies, filesystem writer; Gmail real adapter pending credentials) | ✅ shipped |
 | 1e | Spike detection + stakeholder digest | ✅ shipped |
 | 1f | Read-only JSON API (FastAPI) — health, apps, feedback, drafts, spikes, knowledge/sources, analytics/volume, analytics/categories | ✅ shipped |
-| 1g | React dashboard | ⏳ pending |
+| 1g | React dashboard (Vite + TS + Tailwind + shadcn; Inbox, Drafts, Spikes, Knowledge, Analytics; isolated under `web_ui/`) | ✅ shipped |
 | 1h | Hardening (audit log, runbook, systemd timers) | ⏳ pending |
 
 The original brainstorm + plan lives at

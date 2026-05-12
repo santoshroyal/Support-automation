@@ -455,6 +455,71 @@ showed a clear win.
 
 ---
 
+## ADR-023 — Dashboard UI lives in `web_ui/` as a swappable React app
+
+**Context.** Support staff need a place to look at the data the cron
+jobs have produced — feedback, drafts, spikes, knowledge-base health,
+analytics. Phase 1f closed the read-only JSON API; phase 1g closes the
+visual gap. The user's explicit constraint at the start of this sprint:
+"the UI should live in one folder and be easily replaceable" — a
+property that was already designed into the broader plan but had not yet
+been enforced in code.
+
+**Decision.** Build the dashboard as a Vite + React 18 + TypeScript
+single-page app inside `web_ui/` and enforce these isolation properties:
+
+| Property | Mechanism |
+|---|---|
+| All UI code in one folder | Everything ships under `web_ui/`. Python has zero `.ts/.tsx/.css` files. |
+| No Python imports from the UI | `web_ui/` is a separate npm project with its own `package.json`. Python never reads its source. |
+| One coupling point | `entrypoints/web_api/static_mount.py` (~30 lines) — the only Python module that knows the SPA exists. Called from one line in `main.py`. |
+| Removal recipe | `rm -rf web_ui/` plus commenting out the `mount_web_ui(app)` line in `main.py`. JSON API and cron CLIs keep working. |
+| CI enforces it | `make ci-headless` moves `web_ui/` aside, runs the unit suite, restores `web_ui/`. Has to keep passing. |
+| API is the contract | UI talks to the backend exclusively through `/api/...`. TypeScript types are auto-generated from `/api/openapi.json` via `openapi-typescript`. |
+
+Tech stack:
+- **Vite** for build / dev server (`npm run dev` + `npm run build`).
+- **React 18 + TypeScript** for the UI framework.
+- **TanStack Query** for server-state caching + auto-refresh polling.
+- **React Router v6** for client-side routing across the five pages.
+- **Tailwind CSS** for utility-first styling.
+- **shadcn/ui** — components vendored into `src/components/ui/`
+  (copy-paste, not an npm dep) so we have zero black-box UI primitives.
+- **Recharts** for the analytics page.
+- **openapi-typescript** to keep request / response types in lockstep
+  with the FastAPI schemas via `npm run gen:api`.
+
+Five pages: Inbox, Drafts, Spikes, Knowledge, Analytics. Auto-refresh
+intervals per page (30 s / 30 s / 30 s / 60 s / 5 min) match the plan.
+Audit log is deferred to phase 1h alongside the `audit_log` table.
+
+**Consequences.** Two `Makefile` targets do the right thing for both
+operators and CI:
+
+- `make build` runs `pip install -e .[dev]` and `cd web_ui && npm ci && npm run build` in sequence. End state: a working FastAPI process that serves the SPA at `/` and the JSON API at `/api/...`.
+- `make build-web` builds only the SPA — useful when iterating on the dashboard without touching Python.
+
+The SPA bundle is ~790 KB minified (~240 KB gzipped) for the first cut,
+mostly Recharts. Acceptable for an internal dashboard accessed over the
+LAN; if we ship to public infrastructure later we'll code-split the
+analytics page.
+
+Operator caveats noted during install (all worked around inline; no
+code changes needed):
+- Corporate TLS inspection blocked `ui.shadcn.com`. Fix: run npm/npx
+  with `NODE_OPTIONS="--use-system-ca"` (Node 22 picks up the corporate
+  CA bundle that's installed for `curl`). Build-web target sets this
+  automatically.
+- React 19 has peer-dep conflicts with several packages (Recharts,
+  openapi-typescript). Fix: `npm ci --legacy-peer-deps`. Same fix is
+  applied in the build target.
+
+If `web_ui/` ever stops being separable, the contract starts leaking.
+Two checks catch that: a reviewer notices a cross-folder import, or
+`make ci-headless` exits non-zero. Run it on every PR.
+
+---
+
 ## ADR-022 — Draft replies are customer-facing copy, not internal status updates
 
 **Context.** First end-to-end drafts produced by the phase-1d drafter
@@ -544,7 +609,7 @@ pointing at a copy of `swagger-ui-dist`.
 
 ## How to add a new ADR
 
-1. Pick the next number (ADR-023 at time of writing).
+1. Pick the next number (ADR-024 at time of writing).
 2. Write Context / Decision / Consequences. Aim for 5-12 lines per section.
 3. Link it from the relevant section of `ARCHITECTURE.md` if it's structural.
 4. If it supersedes an earlier decision, add a "Superseded by ADR-NNN" line

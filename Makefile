@@ -1,11 +1,18 @@
 # Times of India — Support Automation
 # Operator + dev shortcuts. See README.md for the full picture.
 
-.PHONY: help install setup-postgres bootstrap-local run-all-once run-ingest run-classify run-knowledge-sync run-draft-replies run-detect-spikes run-send-digest test test-unit test-integration ci-local ci-headless lint typecheck clean
+# Path to the project's Python interpreter. `make` doesn't inherit the
+# venv-activated PATH, so we resolve commands through the local venv's
+# python instead of relying on `pytest` etc. being on $PATH.
+PYTHON ?= .venv/bin/python
+
+.PHONY: help install build build-web setup-postgres bootstrap-local run-all-once run-ingest run-classify run-knowledge-sync run-draft-replies run-detect-spikes run-send-digest test test-unit test-integration ci-local ci-headless lint typecheck clean
 
 help:
 	@echo "Common targets:"
 	@echo "  install              Install Python deps (editable)"
+	@echo "  build                Install Python deps + build the web_ui SPA"
+	@echo "  build-web            Build only the web_ui SPA (npm ci + npm run build)"
 	@echo "  setup-postgres       Create local Postgres db + enable pgvector"
 	@echo "  bootstrap-local      Seed DB; set all *.mode = local"
 	@echo "  run-all-once         Run every cron once, in order, against fixtures"
@@ -19,6 +26,21 @@ help:
 
 install:
 	pip install -e ".[dev]"
+
+# Build the React SPA. `npm ci` is reproducible (uses package-lock.json).
+# `NODE_OPTIONS=--use-system-ca` lets npm/shadcn trust the corporate CA
+# bundle on the operator's machine — same fix as ADR-021 for fastapi
+# docs assets. Skips cleanly if web_ui/ has been removed (headless mode).
+build-web:
+	@if [ -d web_ui ]; then \
+		cd web_ui && NODE_OPTIONS="--use-system-ca" npm ci --legacy-peer-deps && \
+		NODE_OPTIONS="--use-system-ca" npm run build; \
+	else \
+		echo "web_ui/ not present — skipping SPA build (headless mode)."; \
+	fi
+
+build: install build-web
+	@echo "✓ build complete (Python + SPA)"
 
 setup-postgres:
 	@echo "Installing PostgreSQL via Homebrew (skipped if already present)..."
@@ -65,13 +87,13 @@ run-send-digest:
 	python -m entrypoints.cli.send_digest_cli --type=hourly --once
 
 test:
-	pytest
+	$(PYTHON) -m pytest
 
 test-unit:
-	pytest tests/unit -v
+	$(PYTHON) -m pytest tests/unit -v
 
 test-integration:
-	pytest tests/integration -v -m integration
+	$(PYTHON) -m pytest tests/integration -v -m integration
 
 ci-local: lint test-unit
 	@echo "✓ ci-local passed"
